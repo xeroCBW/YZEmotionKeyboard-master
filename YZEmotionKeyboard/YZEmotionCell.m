@@ -10,8 +10,6 @@
 
 @implementation YZEmotionCell
 
-- (void)awakeFromNib {
-    // Initialization code
-}
+
 
 @end

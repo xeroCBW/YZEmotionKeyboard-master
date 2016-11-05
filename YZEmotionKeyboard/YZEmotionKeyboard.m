@@ -48,6 +48,7 @@ static NSString * const ID = @"emotion";
     [self setupPageControl];
     
     [self setupBottonButton];
+    
 }
 
 - (void)setupBottonButton
@@ -64,7 +65,6 @@ static NSString * const ID = @"emotion";
 {
     self.pageControl.numberOfPages = [YZEmotionManager emotionPage];
     self.pageControl.userInteractionEnabled = NO;
-    
 }
 
 // 点击pageControl上小点

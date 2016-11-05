@@ -9,8 +9,9 @@
 #import "ViewController.h"
 #import "YZInputView.h"
 #import "UITextView+YZEmotion.h"
+#import "YZTextAttachment.h"
 
-@interface ViewController ()
+@interface ViewController ()<UITextViewDelegate>
 @property (weak, nonatomic) IBOutlet YZInputView *textView;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *bottomCons;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *bottomHCons;
@@ -20,6 +21,9 @@
 @end
 
 @implementation ViewController
+
+//=======微信的表情键盘输入表情后,只会显示[微笑];不会显示文本的
+//qq 
 
 // 懒加载键盘
 - (YZEmotionKeyboard *)emotionKeyboard
@@ -43,12 +47,14 @@
 
 - (IBAction)clickEmtionKeyboard:(UIButton *)sender {
     
-    
-    
-    if (_textView.inputView == nil) {
+    if (_textView.inputView == nil)
+    {
         _textView.yz_emotionKeyboard = self.emotionKeyboard;
         [sender setBackgroundImage:[UIImage imageNamed:@"toolbar-text"] forState:UIControlStateNormal];
-    } else {
+    }
+    else
+    {
+        //普通键盘---切换键盘时候才会调用
         _textView.inputView = nil;
         [_textView reloadInputViews];
         [sender setBackgroundImage:[UIImage imageNamed:@"smail"] forState:UIControlStateNormal];
@@ -65,6 +71,9 @@
     // 设置文本框占位文字
     _textView.placeholder = @"cbw";
     _textView.placeholderColor = [UIColor redColor];
+    
+    _textView.delegate = self;
+    
     
     // 监听文本框文字高度改变
     _textView.yz_textHeightChangeBlock = ^(NSString *text,CGFloat textHeight){
@@ -100,6 +109,44 @@
     [UIView animateWithDuration:duration animations:^{
         [self.view layoutIfNeeded];
     }];
+}
+
+#pragma mark - delegate
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    
+    if([text isEqualToString:@"\n"]) {
+        
+        NSLog(@"textView按下 return 的文本===%@",[self emotionTextWithTextView:textView]);
+        
+        [textView resignFirstResponder];
+        return NO;
+    }
+    
+    return YES;
+}
+
+
+- (NSString *)emotionTextWithTextView:(UITextView *)textView
+{
+    
+    NSMutableString *strM = [NSMutableString string];
+    
+    [textView.attributedText enumerateAttributesInRange:NSMakeRange(0, textView.attributedText.length) options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(NSDictionary<NSString *,id> * _Nonnull attrs, NSRange range, BOOL * _Nonnull stop) {
+        NSString *str = nil;
+        
+        YZTextAttachment *attachment = attrs[@"NSAttachment"];
+        
+        if (attachment) { // 表情
+            str = attachment.emotionStr;
+            [strM appendString:str];
+        } else { // 文字
+            str = [textView.attributedText.string substringWithRange:range];
+            [strM appendString:str];
+        }
+        
+    }];
+    return strM;
 }
 
 
